@@ -1383,6 +1383,8 @@ static int receive_filter(VirtIONet *n, const uint8_t *buf, int size)
     return 0;
 }
 
+/* 虚拟网卡的某个队列接收到数据包;
+ * 数据包的内容存储在buf中，包长为len字节； */
 static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
                                       size_t size)
 {
@@ -1408,6 +1410,7 @@ static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
 
     offset = i = 0;
 
+	/* 数据包分多次接收，每次接收用VirtQueueElement表示 */
     while (offset < size) {
         VirtQueueElement *elem;
         int len, total;
@@ -1415,6 +1418,8 @@ static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
 
         total = 0;
 
+		/* 从接收队列VirtQueue中获取描述符信息;
+		 * 描述符中包含了虚拟机的物理地址。 */
         elem = virtqueue_pop(q->rx_vq, sizeof(VirtQueueElement));
         if (!elem) {
             if (i) {
@@ -1455,6 +1460,7 @@ static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
             guest_offset = 0;
         }
 
+		/* 将数据包的内存拷贝到GPA中(通过virtqueue_pop已将其映射为HVA) */
         /* copy in packet.  ugh */
         len = iov_from_buf(sg, elem->in_num, guest_offset,
                            buf + offset, size - offset);
@@ -1469,6 +1475,7 @@ static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
             return size;
         }
 
+		/* 更新VirtQueue的UsedRing */
         /* signal other side */
         virtqueue_fill(q->rx_vq, elem, total, i++);
         g_free(elem);
@@ -1481,7 +1488,10 @@ static ssize_t virtio_net_receive_rcu(NetClientState *nc, const uint8_t *buf,
                      &mhdr.num_buffers, sizeof mhdr.num_buffers);
     }
 
+	/* 更新VRingUsed.idx */
     virtqueue_flush(q->rx_vq, i);
+
+	/* 发送中断，通知客户机 */
     virtio_notify(vdev, q->rx_vq);
 
     return size;

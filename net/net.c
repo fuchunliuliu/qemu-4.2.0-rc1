@@ -274,6 +274,10 @@ NetClientState *qemu_new_net_client(NetClientInfo *info,
     return nc;
 }
 
+/* 创建虚拟网卡；
+ * NICState对应一个网卡；
+ * NetClientState对应一个队列, 网卡可能支持多队列;
+ * NetClientInfo中指定了网卡队列接收到数据包时的回调函数: virtio_net_receive */
 NICState *qemu_new_nic(NetClientInfo *info,
                        NICConf *conf,
                        const char *model,

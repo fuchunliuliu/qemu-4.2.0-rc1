@@ -717,6 +717,9 @@ bool virtqueue_rewind(VirtQueue *vq, unsigned int num)
     return true;
 }
 
+/* 功能: 更新VRingUsed.ring[]的数组项
+ * len: 虚拟机从VRingUsed中获取到的描述符链中的数据包中长度。
+ * idx: 调用virtqueue_flush后，第idx次调用virtqueue_split_fill */
 static void virtqueue_split_fill(VirtQueue *vq, const VirtQueueElement *elem,
                     unsigned int len, unsigned int idx)
 {
@@ -781,6 +784,7 @@ void virtqueue_fill(VirtQueue *vq, const VirtQueueElement *elem,
 {
     trace_virtqueue_fill(vq, elem, len, idx);
 
+	/* 取消虚拟机物理地址至宿主机虚拟地址的映射 */
     virtqueue_unmap_sg(vq, elem, len);
 
     if (unlikely(vq->vdev->broken)) {
@@ -1237,6 +1241,7 @@ static bool virtqueue_map_desc(VirtIODevice *vdev, unsigned int *p_num_sg,
         goto out;
     }
 
+	/* VRingDesc描述的一个虚拟机物理内存块，可能对应多个iovec */
     while (sz) {
         hwaddr len = sz;
 
@@ -1246,6 +1251,7 @@ static bool virtqueue_map_desc(VirtIODevice *vdev, unsigned int *p_num_sg,
             goto out;
         }
 
+		/* 将虚拟机物理地址映射为宿主机虚拟地址。 */
         iov[num_sg].iov_base = dma_memory_map(vdev->dma_as, pa, &len,
                                               is_write ?
                                               DMA_DIRECTION_FROM_DEVICE :
@@ -1371,6 +1377,7 @@ static void *virtqueue_split_pop(VirtQueue *vq, size_t sz)
         goto done;
     }
 
+	/* 获取描述符链的头结点在VRingDesc数组中的下标 */
     if (!virtqueue_get_head(vq, vq->last_avail_idx++, &head)) {
         goto done;
     }
@@ -1414,6 +1421,9 @@ static void *virtqueue_split_pop(VirtQueue *vq, size_t sz)
         bool map_ok;
 
         if (desc.flags & VRING_DESC_F_WRITE) {
+			/* 一个描述符链包含多个描述符；
+			 * 可以同时包含用于发送和接收的描述符；
+			 * 用于发送的描述符位于描述符链的前边，接收的描述符位于链的后边 */
             map_ok = virtqueue_map_desc(vdev, &in_num, addr + out_num,
                                         iov + out_num,
                                         VIRTQUEUE_MAX_SIZE - out_num, true,
@@ -1437,6 +1447,7 @@ static void *virtqueue_split_pop(VirtQueue *vq, size_t sz)
             goto err_undo_map;
         }
 
+		/* 根据当前desc的next读取下一个VRingDesc结构 */
         rc = virtqueue_split_read_next_desc(vdev, &desc, desc_cache, max, &i);
     } while (rc == VIRTQUEUE_READ_DESC_MORE);
 
@@ -1821,6 +1832,7 @@ static void virtio_notify_vector(VirtIODevice *vdev, uint16_t vector)
     }
 
     if (k->notify) {
+		/* hw/virtio/virtio-pci.c: virtio_pci_notify */
         k->notify(qbus->parent, vector);
     }
 }
