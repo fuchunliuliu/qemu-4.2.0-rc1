@@ -2311,6 +2311,7 @@ VirtQueue *virtio_add_queue(VirtIODevice *vdev, int queue_size,
 {
     int i;
 
+	/* 将virtio_init()中申请的1024个VirtQueue中未使用的某个分配出去. */
     for (i = 0; i < VIRTIO_QUEUE_MAX; i++) {
         if (vdev->vq[i].vring.num == 0)
             break;
@@ -3139,6 +3140,8 @@ void virtio_init(VirtIODevice *vdev, const char *name,
     atomic_set(&vdev->isr, 0);
     vdev->queue_sel = 0;
     vdev->config_vector = VIRTIO_NO_VECTOR;
+
+	/* VirtIODevice->VirtQueue指针，创建了1024个virtqueue，但并未初始化vring相关字段. */
     vdev->vq = g_malloc0(sizeof(VirtQueue) * VIRTIO_QUEUE_MAX);
     vdev->vm_running = runstate_is_running();
     vdev->broken = false;

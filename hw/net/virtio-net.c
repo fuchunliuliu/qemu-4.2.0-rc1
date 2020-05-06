@@ -2345,7 +2345,7 @@ static void virtio_net_add_queue(VirtIONet *n, int index)
     VirtIODevice *vdev = VIRTIO_DEVICE(n);
 
     n->vqs[index].rx_vq = virtio_add_queue(vdev, n->net_conf.rx_queue_size,
-                                           virtio_net_handle_rx);
+                                           virtio_net_handle_rx); /* 接收队列的回调函数何时被调用？ */
 
     if (n->net_conf.tx && !strcmp(n->net_conf.tx, "timer")) {
         n->vqs[index].tx_vq =
@@ -2357,9 +2357,14 @@ static void virtio_net_add_queue(VirtIONet *n, int index)
     } else {
         n->vqs[index].tx_vq =
             virtio_add_queue(vdev, n->net_conf.tx_queue_size,
-                             virtio_net_handle_tx_bh);
+                             virtio_net_handle_tx_bh); 
         n->vqs[index].tx_bh = qemu_bh_new(virtio_net_tx_bh, &n->vqs[index]);
     }
+	/* 关于上文中发送队列的回调函数:
+	 * Guest OS:
+	 *		virtqueue_kick --> virtqueu_notify --> vp_nofity (写PCI配置空间寄存器)；
+	 * Qemu:
+	 *		IO写操作 --> virtio_ioport_write -->virtio_queue_notify --> VirtQueue->handle_output --> virtio_net_handle_tx_bh */
 
     n->vqs[index].tx_waiting = 0;
     n->vqs[index].n = n;
@@ -2912,6 +2917,7 @@ out:
     }
 }
 
+/* lfc: 初始化VirtioNet实例对象时调用该函数。具体在什么位置调用？ */
 static void virtio_net_device_realize(DeviceState *dev, Error **errp)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(dev);
@@ -2971,6 +2977,7 @@ static void virtio_net_device_realize(DeviceState *dev, Error **errp)
         return;
     }
 
+	/* is_power_of_2(): 提供了判断某数值value书否为2的幂次的方法 */
     if (n->net_conf.tx_queue_size < VIRTIO_NET_TX_QUEUE_MIN_SIZE ||
         n->net_conf.tx_queue_size > VIRTQUEUE_MAX_SIZE ||
         !is_power_of_2(n->net_conf.tx_queue_size)) {
@@ -2982,6 +2989,10 @@ static void virtio_net_device_realize(DeviceState *dev, Error **errp)
         return;
     }
 
+	/* 多队列支持。
+	 * 一个VirtNet可包含一个控制队列和多个数据队列。
+	 * 每个数据队列包含一个接收队列和一个发送队列。
+	 * 其队列数之和不超过VIRTIO_QUEUE_MAX */
     n->max_queues = MAX(n->nic_conf.peers.queues, 1);
     if (n->max_queues * 2 + 1 > VIRTIO_QUEUE_MAX) {
         error_setg(errp, "Invalid number of queues (= %" PRIu32 "), "
@@ -2990,6 +3001,8 @@ static void virtio_net_device_realize(DeviceState *dev, Error **errp)
         virtio_cleanup(vdev);
         return;
     }
+
+	/* 为多个数据队列的描述结构申请内存。 */
     n->vqs = g_malloc0(sizeof(VirtIONetQueue) * n->max_queues);
     n->curr_queues = 1;
     n->tx_timeout = n->net_conf.txtimer;
@@ -3005,10 +3018,12 @@ static void virtio_net_device_realize(DeviceState *dev, Error **errp)
     n->net_conf.tx_queue_size = MIN(virtio_net_max_tx_queue_size(n),
                                     n->net_conf.tx_queue_size);
 
+	/* 初始化每个数据队列 */
     for (i = 0; i < n->max_queues; i++) {
         virtio_net_add_queue(n, i);
     }
 
+	/* 初始化控制队列 */
     n->ctrl_vq = virtio_add_queue(vdev, 64, virtio_net_handle_ctrl);
     qemu_macaddr_default_if_unset(&n->nic_conf.macaddr);
     memcpy(&n->mac[0], &n->nic_conf.macaddr, sizeof(n->mac));
@@ -3210,6 +3225,7 @@ static Property virtio_net_properties[] = {
     DEFINE_PROP_END_OF_LIST(),
 };
 
+/* lfc: 在qemu命令行指定virtio-net参数时，会调用该函数 */
 static void virtio_net_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -3235,6 +3251,7 @@ static void virtio_net_class_init(ObjectClass *klass, void *data)
     vdc->primary_unplug_pending = primary_unplug_pending;
 }
 
+/* lfc: 注册virtio_net_device类对象 */
 static const TypeInfo virtio_net_info = {
     .name = TYPE_VIRTIO_NET,
     .parent = TYPE_VIRTIO_DEVICE,
