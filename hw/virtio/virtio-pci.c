@@ -319,6 +319,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
             vdev->queue_sel = val;
         break;
     case VIRTIO_PCI_QUEUE_NOTIFY:
+		/* [notify guest->host] step 4 */
         if (val < VIRTIO_QUEUE_MAX) {
             virtio_queue_notify(vdev, val);
         }

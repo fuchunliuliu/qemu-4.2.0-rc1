@@ -2282,6 +2282,7 @@ static void virtio_queue_notify_vq(VirtQueue *vq)
     }
 }
 
+/* [notify guest->host] step 5 */
 void virtio_queue_notify(VirtIODevice *vdev, int n)
 {
     VirtQueue *vq = &vdev->vq[n];
@@ -2294,6 +2295,10 @@ void virtio_queue_notify(VirtIODevice *vdev, int n)
     if (vq->host_notifier_enabled) {
         event_notifier_set(&vq->host_notifier);
     } else if (vq->handle_output) {
+		/* 对于virtio-net：
+		 *		接收队列的handle_output为 virtio_net_handle_rx ;
+		 *		发送队列的handle_output为 virtio_net_handle_tx_bh 或者 virtio_net_handle_tx_timer ;
+		 *		在hw/net/virtio-net.c: virtio_net_add_queue()对以上回调函数进行了绑定 */
         vq->handle_output(vdev, vq);
 
         if (unlikely(vdev->start_on_kick)) {
