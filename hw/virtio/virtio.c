@@ -52,6 +52,8 @@ typedef struct VRingPackedDesc {
 
 typedef struct VRingAvail
 {
+	/* flags前端写入，后端读取;
+	 * 后端根据该字段判断：使用完VRingAvail对应的描述符，添加值VRingUsed后，是否通过注入中断，通知前端 */
     uint16_t flags;
     uint16_t idx;
     uint16_t ring[0];
@@ -65,6 +67,8 @@ typedef struct VRingUsedElem
 
 typedef struct VRingUsed
 {
+	/* flags后端写入，前端读取;
+	 * 前端根据该字段判断：释放VRingUsed对应的描述符，添加新的VRingAvail后，是否通过notify机制，通知后端 */
     uint16_t flags;
     uint16_t idx;
     VRingUsedElem ring[0];
@@ -314,6 +318,9 @@ static inline uint16_t vring_avail_ring(VirtQueue *vq, int i)
 /* Called within rcu_read_lock().  */
 static inline uint16_t vring_get_used_event(VirtQueue *vq)
 {
+	/* 返回vring_avail.ring数组最后一项的值；
+	 * 该值由前端设置；
+	 * 表示前端下次要处理的vring_used.ring数组的索引 */
     return vring_avail_ring(vq, vq->vring.num);
 }
 
@@ -2377,17 +2384,25 @@ static bool virtio_split_should_notify(VirtIODevice *vdev, VirtQueue *vq)
     /* Always notify when queue is empty (when feature acknowledge) */
     if (virtio_vdev_has_feature(vdev, VIRTIO_F_NOTIFY_ON_EMPTY) &&
         !vq->inuse && virtio_queue_empty(vq)) {
+		/* 如果vring_avail队列为空，则需要通知前端 */
         return true;
     }
 
     if (!virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
+		/* 如果没有事件通知机制，则当前端没有在vring_avail.flags中指定 VRING_AVAIL_F_NO_INTERRUPT标识时，
+		 * 后端需要通知前端。 */
         return !(vring_avail_flags(vq) & VRING_AVAIL_F_NO_INTERRUPT);
     }
 
     v = vq->signalled_used_valid;
     vq->signalled_used_valid = true;
+
+	/* 上次通知给前端，vring_used.ring数组的下标 */
     old = vq->signalled_used;
+
+	/* 当前vring_used.ring数组的下标 */
     new = vq->signalled_used = vq->used_idx;
+
     return !v || vring_need_event(vring_get_used_event(vq), new, old);
 }
 
@@ -2477,6 +2492,7 @@ static void virtio_irq(VirtQueue *vq)
 void virtio_notify(VirtIODevice *vdev, VirtQueue *vq)
 {
     WITH_RCU_READ_LOCK_GUARD() {
+		/* 判断是否需要通知前端 */
         if (!virtio_should_notify(vdev, vq)) {
             return;
         }
