@@ -292,6 +292,7 @@ static void virtio_pci_stop_ioeventfd(VirtIOPCIProxy *proxy)
     virtio_bus_stop_ioeventfd(&proxy->bus);
 }
 
+/* [setup vring] step 13 */
 static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
 {
     VirtIOPCIProxy *proxy = opaque;
@@ -307,6 +308,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
         virtio_set_features(vdev, val);
         break;
     case VIRTIO_PCI_QUEUE_PFN:
+		/* [setup vring] step 14 */
         pa = (hwaddr)val << VIRTIO_PCI_QUEUE_ADDR_SHIFT;
         if (pa == 0) {
             virtio_pci_reset(DEVICE(proxy));

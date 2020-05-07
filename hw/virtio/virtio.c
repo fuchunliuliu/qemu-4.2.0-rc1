@@ -2152,6 +2152,7 @@ void virtio_config_modern_writel(VirtIODevice *vdev,
     }
 }
 
+/* [setup vring] step 15 */
 void virtio_queue_set_addr(VirtIODevice *vdev, int n, hwaddr addr)
 {
     if (!vdev->vq[n].vring.num) {
