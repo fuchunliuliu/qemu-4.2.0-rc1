@@ -940,6 +940,7 @@ static int net_init_nic(const Netdev *netdev, const char *name,
 }
 
 
+/* [ /dev/vhost-net ]  step 4 */
 static int (* const net_client_init_fun[NET_CLIENT_DRIVER__MAX])(
     const Netdev *netdev,
     const char *name,
@@ -969,6 +970,7 @@ static int (* const net_client_init_fun[NET_CLIENT_DRIVER__MAX])(
 };
 
 
+/* [ /dev/vhost-net ]  step 5 */
 static int net_client_init1(const void *object, bool is_netdev, Error **errp)
 {
     Netdev legacy = {0};
@@ -1100,6 +1102,8 @@ static void show_netdevs(void)
     }
 }
 
+/* [ /dev/vhost-net ]  step 6;
+ * 由该函数的调用者可知，该函数用于解析qemu命令行参数*/
 static int net_client_init(QemuOpts *opts, bool is_netdev, Error **errp)
 {
     gchar **substrings = NULL;

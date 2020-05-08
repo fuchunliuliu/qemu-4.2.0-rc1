@@ -643,6 +643,7 @@ static int net_tap_init(const NetdevTapOptions *tap, int *vnet_hdr,
 
 #define MAX_TAP_QUEUES 1024
 
+/* [ /dev/vhost-net ]  step 2 */
 static void net_init_tap_one(const NetdevTapOptions *tap, NetClientState *peer,
                              const char *model, const char *name,
                              const char *ifname, const char *script,
@@ -700,6 +701,7 @@ static void net_init_tap_one(const NetdevTapOptions *tap, NetClientState *peer,
             }
             qemu_set_nonblock(vhostfd);
         } else {
+			/* [ /dev/vhost-net ]  step 1*/
             vhostfd = open("/dev/vhost-net", O_RDWR);
             if (vhostfd < 0) {
                 if (tap->has_vhostforce && tap->vhostforce) {
@@ -755,6 +757,7 @@ static int get_fds(char *str, char *fds[], int max)
     return i;
 }
 
+/* [ /dev/vhost-net ]  step 3 */
 int net_init_tap(const Netdev *netdev, const char *name,
                  NetClientState *peer, Error **errp)
 {
