@@ -300,6 +300,7 @@ static void vhost_net_stop_one(struct vhost_net *net,
     vhost_dev_disable_notifiers(&net->dev, dev);
 }
 
+/* [ vhost irqfd init ] step 8 */
 int vhost_net_start(VirtIODevice *dev, NetClientState *ncs,
                     int total_queues)
 {
@@ -328,6 +329,7 @@ int vhost_net_start(VirtIODevice *dev, NetClientState *ncs,
         }
      }
 
+	/* [ vhost irqfd init ] step 9 */
     r = k->set_guest_notifiers(qbus->parent, total_queues * 2, true);
     if (r < 0) {
         error_report("Error binding guest notifier: %d", -r);

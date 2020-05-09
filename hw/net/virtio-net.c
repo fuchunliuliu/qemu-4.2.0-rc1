@@ -201,6 +201,7 @@ static void virtio_net_announce(NetClientState *nc)
     }
 }
 
+/* [ vhost irqfd init ] step 8 */
 static void virtio_net_vhost_status(VirtIONet *n, uint8_t status)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(n);
@@ -320,6 +321,7 @@ static void virtio_net_drop_tx_queue_data(VirtIODevice *vdev, VirtQueue *vq)
     }
 }
 
+/* [ vhost irqfd init ] step 7 */
 static void virtio_net_set_status(struct VirtIODevice *vdev, uint8_t status)
 {
     VirtIONet *n = VIRTIO_NET(vdev);
@@ -2928,6 +2930,7 @@ out:
 }
 
 /* lfc: 初始化VirtioNet实例对象时调用该函数。具体在什么位置调用？ */
+/* [ vhost irqfd init ] step 2 */
 static void virtio_net_device_realize(DeviceState *dev, Error **errp)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(dev);
@@ -3236,6 +3239,7 @@ static Property virtio_net_properties[] = {
 };
 
 /* lfc: 在qemu命令行指定virtio-net参数时，会调用该函数 */
+/* [ vhost irqfd init ] step 1 */
 static void virtio_net_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);

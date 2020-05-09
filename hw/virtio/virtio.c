@@ -1865,6 +1865,7 @@ static int virtio_validate_features(VirtIODevice *vdev)
     }
 }
 
+/* [ vhost irqfd init ] step 5 */
 int virtio_set_status(VirtIODevice *vdev, uint8_t val)
 {
     VirtioDeviceClass *k = VIRTIO_DEVICE_GET_CLASS(vdev);
@@ -1887,6 +1888,7 @@ int virtio_set_status(VirtIODevice *vdev, uint8_t val)
     }
 
     if (k->set_status) {
+		/* [ vhost irqfd init ] step 6 */
         k->set_status(vdev, val);
     }
     vdev->status = val;
@@ -3123,6 +3125,7 @@ void virtio_cleanup(VirtIODevice *vdev)
     qemu_del_vm_change_state_handler(vdev->vmstate);
 }
 
+/* [ vhost irqfd init ] step 4 */
 static void virtio_vmstate_change(void *opaque, int running, RunState state)
 {
     VirtIODevice *vdev = opaque;
@@ -3154,6 +3157,7 @@ void virtio_instance_init_common(Object *proxy_obj, void *data,
     qdev_alias_all_properties(vdev, proxy_obj);
 }
 
+/* [ vhost irqfd init ] step 3 */
 void virtio_init(VirtIODevice *vdev, const char *name,
                  uint16_t device_id, size_t config_size)
 {
@@ -3193,8 +3197,11 @@ void virtio_init(VirtIODevice *vdev, const char *name,
     } else {
         vdev->config = NULL;
     }
+
+	/* [ vhost irqfd init ] step 4 */
     vdev->vmstate = qdev_add_vm_change_state_handler(DEVICE(vdev),
             virtio_vmstate_change, vdev);
+
     vdev->device_endian = virtio_default_endian();
     vdev->use_guest_notifier_mask = true;
 }

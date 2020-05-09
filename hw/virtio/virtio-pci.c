@@ -688,6 +688,7 @@ static void kvm_virtio_pci_vq_vector_release(VirtIOPCIProxy *proxy,
     }
 }
 
+/* [ vhost irqfd init ] step 12 */
 static int kvm_virtio_pci_irqfd_use(VirtIOPCIProxy *proxy,
                                  unsigned int queue_no,
                                  unsigned int vector)
@@ -713,6 +714,7 @@ static void kvm_virtio_pci_irqfd_release(VirtIOPCIProxy *proxy,
     assert(ret == 0);
 }
 
+/* [ vhost irqfd init ] step 11 */
 static int kvm_virtio_pci_vector_use(VirtIOPCIProxy *proxy, int nvqs)
 {
     PCIDevice *dev = &proxy->pci_dev;
@@ -968,6 +970,7 @@ static bool virtio_pci_query_guest_notifiers(DeviceState *d)
     return msix_enabled(&proxy->pci_dev);
 }
 
+/* [ vhost irqfd init ] step 10 */
 static int virtio_pci_set_guest_notifiers(DeviceState *d, int nvqs, bool assign)
 {
     VirtIOPCIProxy *proxy = to_virtio_pci_proxy(d);

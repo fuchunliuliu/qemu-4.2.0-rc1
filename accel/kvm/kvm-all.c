@@ -1579,6 +1579,7 @@ int kvm_irqchip_update_msi_route(KVMState *s, int virq, MSIMessage msg,
     return kvm_update_routing_entry(s, &kroute);
 }
 
+/* [ vhost irqfd init ] step 14 */
 static int kvm_irqchip_assign_irqfd(KVMState *s, int fd, int rfd, int virq,
                                     bool assign)
 {
@@ -1597,6 +1598,7 @@ static int kvm_irqchip_assign_irqfd(KVMState *s, int fd, int rfd, int virq,
         return -ENOSYS;
     }
 
+	/* [ vhost irqfd init ] step 15 */
     return kvm_vm_ioctl(s, KVM_IRQFD, &irqfd);
 }
 
@@ -1697,6 +1699,7 @@ int kvm_irqchip_update_msi_route(KVMState *s, int virq, MSIMessage msg)
 }
 #endif /* !KVM_CAP_IRQ_ROUTING */
 
+/* [ vhost irqfd init ] step 13 */
 int kvm_irqchip_add_irqfd_notifier_gsi(KVMState *s, EventNotifier *n,
                                        EventNotifier *rn, int virq)
 {
