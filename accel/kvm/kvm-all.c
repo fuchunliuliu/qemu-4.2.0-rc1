@@ -876,6 +876,7 @@ static uint32_t adjust_ioeventfd_endianness(uint32_t val, uint32_t size)
     return val;
 }
 
+/* [vhost-net ioeventfd init] step 13 */
 static int kvm_set_ioeventfd_mmio(int fd, hwaddr addr, uint32_t val,
                                   bool assign, uint32_t size, bool datamatch)
 {
@@ -901,6 +902,7 @@ static int kvm_set_ioeventfd_mmio(int fd, hwaddr addr, uint32_t val,
         iofd.flags |= KVM_IOEVENTFD_FLAG_DEASSIGN;
     }
 
+	/* [vhost-net ioeventfd init] step 14 */
     ret = kvm_vm_ioctl(kvm_state, KVM_IOEVENTFD, &iofd);
 
     if (ret < 0) {
@@ -1127,6 +1129,7 @@ static void kvm_log_clear(MemoryListener *listener,
     }
 }
 
+/* [vhost-net ioeventfd init] step 12 */
 static void kvm_mem_ioeventfd_add(MemoryListener *listener,
                                   MemoryRegionSection *section,
                                   bool match_data, uint64_t data,

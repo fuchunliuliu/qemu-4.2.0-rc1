@@ -225,6 +225,7 @@ static inline int virtio_pci_queue_mem_mult(struct VirtIOPCIProxy *proxy)
         QEMU_VIRTIO_PCI_QUEUE_MEM_MULT : 4;
 }
 
+/* [vhost-net ioeventfd init] step 7 */ 
 static int virtio_pci_ioeventfd_assign(DeviceState *d, EventNotifier *notifier,
                                        int n, bool assign)
 {
@@ -282,6 +283,7 @@ static int virtio_pci_ioeventfd_assign(DeviceState *d, EventNotifier *notifier,
     return 0;
 }
 
+/* [vhost-net ioeventfd init] step 3 */
 static void virtio_pci_start_ioeventfd(VirtIOPCIProxy *proxy)
 {
     virtio_bus_start_ioeventfd(&proxy->bus);
@@ -293,6 +295,7 @@ static void virtio_pci_stop_ioeventfd(VirtIOPCIProxy *proxy)
 }
 
 /* [setup vring] step 13 */
+/* [vhost-net ioeventfd init] step 1 */
 static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
 {
     VirtIOPCIProxy *proxy = opaque;
@@ -334,6 +337,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
         virtio_set_status(vdev, val & 0xFF);
 
         if (val & VIRTIO_CONFIG_S_DRIVER_OK) {
+			/* [vhost-net ioeventfd init] step 2 */
             virtio_pci_start_ioeventfd(proxy);
         }
 

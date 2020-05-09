@@ -726,6 +726,7 @@ static FlatView *generate_memory_topology(MemoryRegion *mr)
     return view;
 }
 
+/* [vhost-net ioeventfd init] step 11 */ 
 static void address_space_add_del_ioeventfds(AddressSpace *as,
                                              MemoryRegionIoeventfd *fds_new,
                                              unsigned fds_new_nb,
@@ -789,6 +790,7 @@ FlatView *address_space_get_flatview(AddressSpace *as)
     return view;
 }
 
+/* [vhost-net ioeventfd init] step 10 */ 
 static void address_space_update_ioeventfds(AddressSpace *as)
 {
     FlatView *view;
@@ -1048,6 +1050,7 @@ void memory_region_transaction_begin(void)
     ++memory_region_transaction_depth;
 }
 
+/* [vhost-net ioeventfd init] step 9 */ 
 void memory_region_transaction_commit(void)
 {
     AddressSpace *as;
@@ -2287,6 +2290,7 @@ void memory_region_clear_global_locking(MemoryRegion *mr)
 
 static bool userspace_eventfd_warning;
 
+/* [vhost-net ioeventfd init] step 8 */ 
 void memory_region_add_eventfd(MemoryRegion *mr,
                                hwaddr addr,
                                unsigned size,

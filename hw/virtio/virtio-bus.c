@@ -202,6 +202,7 @@ void virtio_bus_release_ioeventfd(VirtioBusState *bus)
     }
 }
 
+/* [vhost-net ioeventfd init] step 4 */
 int virtio_bus_start_ioeventfd(VirtioBusState *bus)
 {
     VirtioBusClass *k = VIRTIO_BUS_GET_CLASS(bus);
@@ -259,6 +260,7 @@ bool virtio_bus_ioeventfd_enabled(VirtioBusState *bus)
  * This function switches ioeventfd on/off in the device.
  * The caller must set or clear the handlers for the EventNotifier.
  */
+/* [vhost-net ioeventfd init] step 6 */
 int virtio_bus_set_host_notifier(VirtioBusState *bus, int n, bool assign)
 {
     VirtIODevice *vdev = virtio_bus_get_device(bus);

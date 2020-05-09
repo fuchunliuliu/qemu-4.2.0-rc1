@@ -3616,6 +3616,7 @@ static Property virtio_properties[] = {
     DEFINE_PROP_END_OF_LIST(),
 };
 
+/* [vhost-net ioeventfd init] step 5 */
 static int virtio_device_start_ioeventfd_impl(VirtIODevice *vdev)
 {
     VirtioBusState *qbus = VIRTIO_BUS(qdev_get_parent_bus(DEVICE(vdev)));
