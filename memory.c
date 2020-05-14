@@ -209,9 +209,13 @@ static bool memory_region_ioeventfd_equal(MemoryRegionIoeventfd *a,
 }
 
 /* Range of memory in the global map.  Addresses are absolute. */
+/* 每个FlatRange对应一段虚拟机物理地址空间，各个FlatRange不重叠，按地址的顺序保存在数组中；
+ * 根据该结构可进行GPA到HVA的转换 */
 struct FlatRange {
     MemoryRegion *mr;
+	/* 该区间在全局MR中的offset */
     hwaddr offset_in_region;
+	/* 区间 */
     AddrRange addr;
     uint8_t dirty_log_mask;
     bool romd_mode;

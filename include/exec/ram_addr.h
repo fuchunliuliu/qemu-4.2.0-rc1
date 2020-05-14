@@ -25,11 +25,14 @@
 #include "sysemu/tcg.h"
 #include "exec/ramlist.h"
 
+/* 一个RAMBlock代表host的一段虚拟内存；通过next成员形成链表 */
 struct RAMBlock {
     struct rcu_head rcu;
     struct MemoryRegion *mr;
+	/* block关联的内存，hva */
     uint8_t *host;
     uint8_t *colo_cache; /* For colo, VM's ram cache */
+	/* 该区域关联的客户机物理地址(在客户机物理地址空间的偏移), gpa */
     ram_addr_t offset;
     ram_addr_t used_length;
     ram_addr_t max_length;

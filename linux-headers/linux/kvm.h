@@ -94,6 +94,7 @@ struct kvm_memory_region {
 };
 
 /* for KVM_SET_USER_MEMORY_REGION */
+/* 作为参数，传给kvm */
 struct kvm_userspace_memory_region {
 	__u32 slot;
 	__u32 flags;

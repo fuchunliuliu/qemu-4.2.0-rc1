@@ -360,6 +360,10 @@ typedef struct IOMMUMemoryRegionClass {
 typedef struct CoalescedMemoryRange CoalescedMemoryRange;
 typedef struct MemoryRegionIoeventfd MemoryRegionIoeventfd;
 
+/* MR管理host内存;
+ * 两层树状结构；
+ * qemu中存在两个全局的MR: system_memory 和 system_io;
+ * MR管理的内存在hva上是连续的吗？ */
 struct MemoryRegion {
     Object parent_obj;
 
@@ -367,6 +371,7 @@ struct MemoryRegion {
 
     /* The following fields should fit in a cache line */
     bool romd_mode;
+	/* 是否是ram */
     bool ram;
     bool subpage;
     bool readonly; /* For RAM regions */
@@ -382,6 +387,7 @@ struct MemoryRegion {
     const MemoryRegionOps *ops;
     void *opaque;
     MemoryRegion *container;
+	/* 区域的大小 */
     Int128 size;
     hwaddr addr;
     void (*destructor)(MemoryRegion *mr);
@@ -391,10 +397,15 @@ struct MemoryRegion {
     bool enabled;
     bool warning_printed; /* For reservations */
     uint8_t vga_logging_count;
+	/* 指向原始的MR. 
+	 * 虚拟机首先一次性申请一个大的ram，记录在MR中；然后按照size对大ram进行划分，得到subregion, subregion的alias指向原始MR。 */
     MemoryRegion *alias;
+	/* 在原始ram中的偏移 */
     hwaddr alias_offset;
     int32_t priority;
+	/* 子区域链表头 */
     QTAILQ_HEAD(, MemoryRegion) subregions;
+	/* 子区域链表节点 */
     QTAILQ_ENTRY(MemoryRegion) subregions_link;
     QTAILQ_HEAD(, CoalescedMemoryRange) coalesced;
     const char *name;
@@ -451,6 +462,8 @@ struct MemoryListener {
 /**
  * AddressSpace: describes a mapping of addresses to #MemoryRegion objects
  */
+/* AddressSpace管理的偏向于虚拟机内存;
+ * qemu中全局的AS: address_space_memory & address_space_to */
 struct AddressSpace {
     /* All fields are private. */
     struct rcu_head rcu;
@@ -467,16 +480,22 @@ struct AddressSpace {
 };
 
 typedef struct AddressSpaceDispatch AddressSpaceDispatch;
+/* define in memory.c */
 typedef struct FlatRange FlatRange;
 
 /* Flattened global view of current active memory hierarchy.  Kept in sorted
  * order.
  */
+/* 管理MR展开后得到的所有FlatRange */
 struct FlatView {
     struct rcu_head rcu;
+	/* 引用计数，为0时销毁 */
     unsigned ref;
+	/* FlatRange数组 */
     FlatRange *ranges;
+	/* 数组的成员数 */
     unsigned nr;
+	/* 当前数组的项数 */
     unsigned nr_allocated;
     struct AddressSpaceDispatch *dispatch;
     MemoryRegion *root;
@@ -500,11 +519,15 @@ static inline FlatView *address_space_to_flatview(AddressSpace *as)
  * @readonly: writes to this section are ignored
  * @nonvolatile: this section is non-volatile
  */
+/* 一个 MemoryRegionSection 对应一个 FlatRange */
 struct MemoryRegionSection {
+	/* section的大小 */
     Int128 size;
     MemoryRegion *mr;
     FlatView *fv;
+	/* 该section在MR内的偏移；是局部的偏移； */
     hwaddr offset_within_region;
+	/* 一个AS可能由多个MR构成；该section在整个地址空间中的偏移；是全局的偏移； */
     hwaddr offset_within_address_space;
     bool readonly;
     bool nonvolatile;

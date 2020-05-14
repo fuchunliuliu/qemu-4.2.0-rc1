@@ -15,9 +15,13 @@
 
 typedef struct KVMSlot
 {
+	/* 客户机物理地址 */
     hwaddr start_addr;
+	/* 内存大小 */
     ram_addr_t memory_size;
+	/* hva, qemu用户空间地址 */
     void *ram;
+	/* slot编号 */
     int slot;
     int flags;
     int old_flags;
