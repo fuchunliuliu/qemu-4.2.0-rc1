@@ -2050,6 +2050,8 @@ static int kvm_init(MachineState *ms)
 
     kvm_memory_listener_register(s, &s->memory_listener,
                                  &address_space_memory, 0);
+
+	/* guest向PCI配置空间写入，导致vm-exit */
     memory_listener_register(&kvm_io_listener,
                              &address_space_io);
     memory_listener_register(&kvm_coalesced_pio_listener,

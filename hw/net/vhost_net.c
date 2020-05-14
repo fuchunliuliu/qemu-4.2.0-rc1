@@ -138,6 +138,7 @@ static int vhost_net_get_fd(NetClientState *backend)
     }
 }
 
+/* 初始化vhost */
 struct vhost_net *vhost_net_init(VhostNetOptions *options)
 {
     int r;

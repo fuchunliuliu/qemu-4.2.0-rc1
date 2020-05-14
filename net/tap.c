@@ -758,6 +758,7 @@ static int get_fds(char *str, char *fds[], int max)
 }
 
 /* [ /dev/vhost-net ]  step 3 */
+/* 通过参数-netdev tap,vhost=on，创建的网络设备，后端是基于vhost的 */
 int net_init_tap(const Netdev *netdev, const char *name,
                  NetClientState *peer, Error **errp)
 {
@@ -935,6 +936,7 @@ free_fail:
                 }
             }
 
+			/* 多队列。此处的队列指的是模拟设备的多队列(硬件意义上的多队列) */
             net_init_tap_one(tap, peer, "tap", name, ifname,
                              i >= 1 ? "no" : script,
                              i >= 1 ? "no" : downscript,
