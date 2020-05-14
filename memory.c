@@ -2661,6 +2661,7 @@ void memory_global_dirty_log_stop(void)
     memory_global_dirty_log_do_stop();
 }
 
+/* 将as管理的FlatRange向kvm注册 */
 static void listener_add_address_space(MemoryListener *listener,
                                        AddressSpace *as)
 {
@@ -2724,6 +2725,8 @@ void memory_listener_register(MemoryListener *listener, AddressSpace *as)
     MemoryListener *other = NULL;
 
     listener->address_space = as;
+
+	/* 将listener插入全局链表，按优先级升序排列 */
     if (QTAILQ_EMPTY(&memory_listeners)
         || listener->priority >= QTAILQ_LAST(&memory_listeners)->priority) {
         QTAILQ_INSERT_TAIL(&memory_listeners, listener, link);
@@ -2736,6 +2739,7 @@ void memory_listener_register(MemoryListener *listener, AddressSpace *as)
         QTAILQ_INSERT_BEFORE(other, listener, link);
     }
 
+	/* 将该listener插入本as的listener链表中 */
     if (QTAILQ_EMPTY(&as->listeners)
         || listener->priority >= QTAILQ_LAST(&as->listeners)->priority) {
         QTAILQ_INSERT_TAIL(&as->listeners, listener, link_as);

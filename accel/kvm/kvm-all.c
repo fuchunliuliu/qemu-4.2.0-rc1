@@ -2048,10 +2048,10 @@ static int kvm_init(MachineState *ms)
     s->memory_listener.listener.coalesced_io_add = kvm_coalesce_mmio_region;
     s->memory_listener.listener.coalesced_io_del = kvm_uncoalesce_mmio_region;
 
+	/* guest向PCI配置空间写入，导致vm-exit */
+	/* 执行顺序: configure_accelerator() -->kvm_init()-->memory_listener_register() */
     kvm_memory_listener_register(s, &s->memory_listener,
                                  &address_space_memory, 0);
-
-	/* guest向PCI配置空间写入，导致vm-exit */
     memory_listener_register(&kvm_io_listener,
                              &address_space_io);
     memory_listener_register(&kvm_coalesced_pio_listener,
