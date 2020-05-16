@@ -50,6 +50,7 @@ static QTAILQ_HEAD(, MemoryListener) memory_listeners
 static QTAILQ_HEAD(, AddressSpace) address_spaces
     = QTAILQ_HEAD_INITIALIZER(address_spaces);
 
+/* FlatView 哈希表头 */
 static GHashTable *flat_views;
 
 typedef struct AddrRange AddrRange;
@@ -661,6 +662,7 @@ static void render_memory_region(FlatView *view,
     }
 }
 
+/* 在找哪个 MemoryRegion ? */
 static MemoryRegion *memory_region_get_flatview_root(MemoryRegion *mr)
 {
     while (mr->enabled) {
@@ -960,9 +962,11 @@ static void flatviews_init(void)
         return;
     }
 
+	/* 创建全局hash表头 */
     flat_views = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL,
                                        (GDestroyNotify) flatview_unref);
     if (!empty_view) {
+		/* 创建 FlatView */
         empty_view = generate_memory_topology(NULL);
         /* We keep it alive forever in the global variable.  */
         flatview_ref(empty_view);
@@ -1041,6 +1045,7 @@ static void address_space_set_flatview(AddressSpace *as)
 
 static void address_space_update_topology(AddressSpace *as)
 {
+	/* 获取某个 MemoryRegion */
     MemoryRegion *physmr = memory_region_get_flatview_root(as->root);
 
     flatviews_init();
@@ -2784,8 +2789,12 @@ void address_space_init(AddressSpace *as, MemoryRegion *root, const char *name)
     as->ioeventfd_nb = 0;
     as->ioeventfds = NULL;
     QTAILQ_INIT(&as->listeners);
+
+	/* 将 AS 加入全局链表 */
     QTAILQ_INSERT_TAIL(&address_spaces, as, address_spaces_link);
     as->name = g_strdup(name ? name : "anonymous");
+
+	/* 此处设计真正的内存分配吗 ? */
     address_space_update_topology(as);
     address_space_update_ioeventfds(as);
 }
@@ -3233,6 +3242,7 @@ void memory_region_init_rom_device(MemoryRegion *mr,
     vmstate_register_ram(mr, owner_dev);
 }
 
+/* 定义 memory-region 类型 */
 static const TypeInfo memory_region_info = {
     .parent             = TYPE_OBJECT,
     .name               = TYPE_MEMORY_REGION,

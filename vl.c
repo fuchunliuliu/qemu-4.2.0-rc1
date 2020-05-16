@@ -3907,6 +3907,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
+	/* [init AS] step 1 */
     cpu_exec_init_all();
 
     if (machine_class->hw_version) {

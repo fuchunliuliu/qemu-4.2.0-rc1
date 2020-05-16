@@ -2954,11 +2954,16 @@ static void tcg_commit(MemoryListener *listener)
     tlb_flush(cpuas->cpu);
 }
 
+/* [init AS] step 4 */
 static void memory_map_init(void)
 {
+	/* 创建全局的 MemoryRegion */
     system_memory = g_malloc(sizeof(*system_memory));
 
+	/* 初始化全局的 MemoryRegion */
     memory_region_init(system_memory, NULL, "system", UINT64_MAX);
+
+	/* 初始化全局的 AddressSpace */
     address_space_init(&address_space_memory, system_memory, "memory");
 
     system_io = g_malloc(sizeof(*system_io));
@@ -3399,6 +3404,7 @@ void cpu_register_map_client(QEMUBH *bh)
     qemu_mutex_unlock(&map_client_list_lock);
 }
 
+/* [init AS] step 2 */
 void cpu_exec_init_all(void)
 {
     qemu_mutex_init(&ram_list.mutex);
@@ -3411,6 +3417,7 @@ void cpu_exec_init_all(void)
      */
     finalize_target_page_bits();
     io_mem_init();
+	/* [init AS] step 3 */
     memory_map_init();
     qemu_mutex_init(&map_client_list_lock);
 }
