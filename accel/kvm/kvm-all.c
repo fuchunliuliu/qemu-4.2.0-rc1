@@ -2049,7 +2049,9 @@ static int kvm_init(MachineState *ms)
     s->memory_listener.listener.coalesced_io_del = kvm_uncoalesce_mmio_region;
 
 	/* guest向PCI配置空间写入，导致vm-exit */
-	/* 执行顺序: configure_accelerator() -->kvm_init()-->memory_listener_register() */
+	/* 执行顺序: configure_accelerator() -->kvm_init()-->memory_listener_register() 
+	 * listener是一组函数表，当地址空间发生变化的时候，会调用listener中的相应函数，从而
+	 * 保持内核和用户空间内存信息的一致性 */
     kvm_memory_listener_register(s, &s->memory_listener,
                                  &address_space_memory, 0);
     memory_listener_register(&kvm_io_listener,

@@ -387,7 +387,7 @@ struct MemoryRegion {
     const MemoryRegionOps *ops;
     void *opaque;
     MemoryRegion *container;
-	/* 区域的大小 */
+	/* 区域的大小; 默认是64位下的最大地址 */
     Int128 size;
     hwaddr addr;
     void (*destructor)(MemoryRegion *mr);
@@ -525,10 +525,14 @@ struct MemoryRegionSection {
     Int128 size;
     MemoryRegion *mr;
     FlatView *fv;
-	/* 该section在MR内的偏移；是局部的偏移； */
+
+	/* 该section在MR内的偏移；是局部的偏移;
+	 * 该值与 FlatRange.offset_in_region 相等, 在函数 section_from_flat_range() 中有赋值 */
     hwaddr offset_within_region;
-	/* 一个AS可能由多个MR构成；该section在整个地址空间中的偏移；是全局的偏移； */
+	/* 一个AS可能由多个MR构成；该section在整个地址空间中的偏移；是全局的偏移;
+	 * 该值与 FlatRange.addr.start相等; */
     hwaddr offset_within_address_space;
+
     bool readonly;
     bool nonvolatile;
 };

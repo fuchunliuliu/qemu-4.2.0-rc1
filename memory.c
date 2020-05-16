@@ -42,9 +42,11 @@ static bool memory_region_update_pending;
 static bool ioeventfd_update_pending;
 bool global_dirty_log;
 
+/* 全局 MemoryListener 链表头 */
 static QTAILQ_HEAD(, MemoryListener) memory_listeners
     = QTAILQ_HEAD_INITIALIZER(memory_listeners);
 
+/* 全局 AddressSpace 链表头 */
 static QTAILQ_HEAD(, AddressSpace) address_spaces
     = QTAILQ_HEAD_INITIALIZER(address_spaces);
 
