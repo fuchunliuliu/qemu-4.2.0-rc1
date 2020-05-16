@@ -2197,6 +2197,7 @@ static void dirty_memory_extend(ram_addr_t old_ram_size,
     }
 }
 
+/* [alloc mem] step 10 */
 static void ram_block_add(RAMBlock *new_block, Error **errp, bool shared)
 {
     RAMBlock *block;
@@ -2207,9 +2208,11 @@ static void ram_block_add(RAMBlock *new_block, Error **errp, bool shared)
     old_ram_size = last_ram_page();
 
     qemu_mutex_lock_ramlist();
+
+	/* 在已有的RAMBlock中找一个可用的. 内存初始化时没有可用的，需要创建, 此时offset为0 */
     new_block->offset = find_ram_offset(new_block->max_length);
 
-    if (!new_block->host) {
+    if (!new_block->host) { /* 该RAMBlock对应的宿主机虚拟地址. 内存初始化时为NULL */
         if (xen_enabled()) {
             xen_ram_alloc(new_block->offset, new_block->max_length,
                           new_block->mr, &err);
@@ -2219,6 +2222,7 @@ static void ram_block_add(RAMBlock *new_block, Error **errp, bool shared)
                 return;
             }
         } else {
+			/* [alloc mem] step 11: 利用mmap分配内存 */
             new_block->host = phys_mem_alloc(new_block->max_length,
                                              &new_block->mr->align, shared);
             if (!new_block->host) {
@@ -2241,6 +2245,7 @@ static void ram_block_add(RAMBlock *new_block, Error **errp, bool shared)
      * QLIST (which has an RCU-friendly variant) does not have insertion at
      * tail, so save the last element in last_block.
      */
+	/* 按照块大小降序插入至全局链表ram_list中 */
     RAMBLOCK_FOREACH(block) {
         last_block = block;
         if (block->max_length < new_block->max_length) {
@@ -2365,6 +2370,7 @@ RAMBlock *qemu_ram_alloc_from_file(ram_addr_t size, MemoryRegion *mr,
 }
 #endif
 
+/* [alloc mem] step 8 */
 static
 RAMBlock *qemu_ram_alloc_internal(ram_addr_t size, ram_addr_t max_size,
                                   void (*resized)(const char*,
@@ -2393,6 +2399,8 @@ RAMBlock *qemu_ram_alloc_internal(ram_addr_t size, ram_addr_t max_size,
     if (resizeable) {
         new_block->flags |= RAM_RESIZEABLE;
     }
+
+	/* [alloc mem] step 9 */
     ram_block_add(new_block, &local_err, share);
     if (local_err) {
         g_free(new_block);
@@ -2409,6 +2417,7 @@ RAMBlock *qemu_ram_alloc_from_ptr(ram_addr_t size, void *host,
                                    false, mr, errp);
 }
 
+/* [alloc mem] step 7 */
 RAMBlock *qemu_ram_alloc(ram_addr_t size, bool share,
                          MemoryRegion *mr, Error **errp)
 {

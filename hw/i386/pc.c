@@ -1126,6 +1126,7 @@ void xen_load_linux(PCMachineState *pcms)
     x86ms->fw_cfg = fw_cfg;
 }
 
+/* 虚拟机内存分配 */
 void pc_memory_init(PCMachineState *pcms,
                     MemoryRegion *system_memory,
                     MemoryRegion *rom_memory,
@@ -1150,14 +1151,21 @@ void pc_memory_init(PCMachineState *pcms,
      * with older qemus that used qemu_ram_alloc().
      */
     ram = g_malloc(sizeof(*ram));
+	/* 分配具体的内存 */
+	/* [alloc mem] step 1 */
     memory_region_allocate_system_memory(ram, NULL, "pc.ram",
                                          machine->ram_size);
     *ram_memory = ram;
+
+	/* 对整体ram进行划分 */
     ram_below_4g = g_malloc(sizeof(*ram_below_4g));
     memory_region_init_alias(ram_below_4g, NULL, "ram-below-4g", ram,
                              0, x86ms->below_4g_mem_size);
+
+	/* [MR update to kvm] step 1 */
     memory_region_add_subregion(system_memory, 0, ram_below_4g);
     e820_add_entry(0, x86ms->below_4g_mem_size, E820_RAM);
+
     if (x86ms->above_4g_mem_size > 0) {
         ram_above_4g = g_malloc(sizeof(*ram_above_4g));
         memory_region_init_alias(ram_above_4g, NULL, "ram-above-4g", ram,

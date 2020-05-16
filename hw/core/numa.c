@@ -491,6 +491,7 @@ static void allocate_system_memory_nonnuma(MemoryRegion *mr, Object *owner,
                                            uint64_t ram_size)
 {
     if (mem_path) {
+		/* 支持大页时的内存分配 */
 #ifdef __linux__
         Error *err = NULL;
         memory_region_init_ram_from_file(mr, owner, name, ram_size, 0, 0,
@@ -515,8 +516,11 @@ static void allocate_system_memory_nonnuma(MemoryRegion *mr, Object *owner,
         exit(1);
 #endif
     } else {
+		/* [alloc mem] step 3: 不支持大页时的内存分配 */
         memory_region_init_ram_nomigrate(mr, owner, name, ram_size, &error_fatal);
     }
+
+	/* 将MR中的name设置仅 RAMBlock */
     vmstate_register_ram_global(mr);
 }
 
@@ -530,6 +534,7 @@ void memory_region_allocate_system_memory(MemoryRegion *mr, Object *owner,
 
     if (ms->numa_state == NULL ||
         ms->numa_state->num_nodes == 0 || !have_memdevs) {
+		/* [alloc mem] step 2: 非numa结构 */
         allocate_system_memory_nonnuma(mr, owner, name, ram_size);
         return;
     }
