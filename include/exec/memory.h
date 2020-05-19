@@ -387,8 +387,13 @@ struct MemoryRegion {
     const MemoryRegionOps *ops;
     void *opaque;
     MemoryRegion *container;
-	/* 区域的大小; 默认是64位下的最大地址 */
+	/* 区域的大小; 
+	 * 全局MR: 默认是64位下的最大地址;
+	 * 根MR: 命令行-m参数指定; */
     Int128 size;
+	/* 子MR相对于全局MR的偏移;
+	 * 注意全局MR和根MR是不同的;
+	 * 命令行配置-m 7G时，第一个子MR的addr为0; 第二个子MR的addr为4G;*/
     hwaddr addr;
     void (*destructor)(MemoryRegion *mr);
     uint64_t align;
@@ -400,7 +405,7 @@ struct MemoryRegion {
 	/* 指向原始的MR. 
 	 * 虚拟机首先一次性申请一个大的ram，记录在MR中；然后按照size对大ram进行划分，得到subregion, subregion的alias指向原始MR。 */
     MemoryRegion *alias;
-	/* 在原始ram中的偏移 */
+	/* 在根ram中的偏移 */
     hwaddr alias_offset;
     int32_t priority;
 	/* 子区域链表头 */
