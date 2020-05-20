@@ -234,6 +234,7 @@ static int vhost_net_start_one(struct vhost_net *net,
         goto fail_notifiers;
     }
 
+	/**/
     r = vhost_dev_start(&net->dev, dev);
     if (r < 0) {
         goto fail_start;

@@ -1036,6 +1036,8 @@ static int vhost_virtqueue_start(struct vhost_dev *dev,
     }
 
     file.fd = event_notifier_get_fd(virtio_queue_get_host_notifier(vvq));
+
+	/* ./hw/virtio/vhost-backend.c: vhost_kernel_set_vring_kick() */
     r = dev->vhost_ops->vhost_set_vring_kick(dev, &file);
     if (r) {
         VHOST_OPS_DEBUG("vhost_set_vring_kick failed");
@@ -1345,6 +1347,7 @@ void vhost_dev_cleanup(struct vhost_dev *hdev)
 /* Stop processing guest IO notifications in qemu.
  * Start processing them in vhost in kernel.
  */
+/**/
 int vhost_dev_enable_notifiers(struct vhost_dev *hdev, VirtIODevice *vdev)
 {
     BusState *qbus = BUS(qdev_get_parent_bus(DEVICE(vdev)));
