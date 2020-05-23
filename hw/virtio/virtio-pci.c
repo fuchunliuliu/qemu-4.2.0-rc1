@@ -336,6 +336,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
             virtio_pci_stop_ioeventfd(proxy);
         }
 
+		/* [vhost-user: guest loaded virtio-net driver] step 1: guest中virtio-net驱动加载完成后，写寄存器 VIRTIO_PCI_STATUS */
         virtio_set_status(vdev, val & 0xFF);
 
         if (val & VIRTIO_CONFIG_S_DRIVER_OK) {

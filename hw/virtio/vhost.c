@@ -762,6 +762,8 @@ static int vhost_dev_set_features(struct vhost_dev *dev,
     if (enable_log) {
         features |= 0x1ULL << VHOST_F_LOG_ALL;
     }
+
+	/* hw/virtio/vhost-user.c: vhost_user_set_features() */
     r = dev->vhost_ops->vhost_set_features(dev, features);
     if (r < 0) {
         VHOST_OPS_DEBUG("vhost_set_features failed");
@@ -959,6 +961,7 @@ out:
     return ret;
 }
 
+/* [vhost-user: guest loaded virtio-net driver] step 16 */
 static int vhost_virtqueue_start(struct vhost_dev *dev,
                                 struct VirtIODevice *vdev,
                                 struct vhost_virtqueue *vq,
@@ -985,6 +988,9 @@ static int vhost_virtqueue_start(struct vhost_dev *dev,
     }
 
     vq->num = state.num = virtio_queue_get_num(vdev, idx);
+
+	/* [vhost-user: guest loaded virtio-net driver] step 16.1: 
+	 * hw/virtio/vhost-user.c: vhost_user_set_vring_num() */
     r = dev->vhost_ops->vhost_set_vring_num(dev, &state);
     if (r) {
         VHOST_OPS_DEBUG("vhost_set_vring_num failed");
@@ -992,6 +998,9 @@ static int vhost_virtqueue_start(struct vhost_dev *dev,
     }
 
     state.num = virtio_queue_get_last_avail_idx(vdev, idx);
+
+	/* [vhost-user: guest loaded virtio-net driver] step 16.2: 
+	 * hw/virtio/vhost-user.c: vhost_user_set_vring_base() */
     r = dev->vhost_ops->vhost_set_vring_base(dev, &state);
     if (r) {
         VHOST_OPS_DEBUG("vhost_set_vring_base failed");
@@ -1029,6 +1038,7 @@ static int vhost_virtqueue_start(struct vhost_dev *dev,
         goto fail_alloc_used;
     }
 
+	/* [vhost-user: guest loaded virtio-net driver] step 16.3 */
     r = vhost_virtqueue_set_addr(dev, vq, vhost_vq_index, dev->log_enabled);
     if (r < 0) {
         r = -errno;
@@ -1213,6 +1223,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     hdev->vdev = NULL;
     hdev->migration_blocker = NULL;
 
+	/* vhost_ops在此处赋值; kernel_ops or user_ops */
     r = vhost_set_backend_type(hdev, backend_type);
     assert(r >= 0);
 
@@ -1610,6 +1621,7 @@ int vhost_dev_get_inflight(struct vhost_dev *dev, uint16_t queue_size,
 }
 
 /* Host notifiers must be enabled at this point. */
+/* [vhost-user: guest loaded virtio-net driver] step 12 */
 int vhost_dev_start(struct vhost_dev *hdev, VirtIODevice *vdev)
 {
     int i, r;
@@ -1620,6 +1632,7 @@ int vhost_dev_start(struct vhost_dev *hdev, VirtIODevice *vdev)
     hdev->started = true;
     hdev->vdev = vdev;
 
+	/* [vhost-user: guest loaded virtio-net driver] step 13 */
     r = vhost_dev_set_features(hdev, hdev->log_enabled);
     if (r < 0) {
         goto fail_features;
@@ -1629,6 +1642,8 @@ int vhost_dev_start(struct vhost_dev *hdev, VirtIODevice *vdev)
         memory_listener_register(&hdev->iommu_listener, vdev->dma_as);
     }
 
+	/* [vhost-user: guest loaded virtio-net driver] step 14
+	 * hw/virtio/vhost-user.c: vhost_user_set_mem_table() */
     r = hdev->vhost_ops->vhost_set_mem_table(hdev, hdev->mem);
     if (r < 0) {
         VHOST_OPS_DEBUG("vhost_set_mem_table failed");
@@ -1636,6 +1651,7 @@ int vhost_dev_start(struct vhost_dev *hdev, VirtIODevice *vdev)
         goto fail_mem;
     }
     for (i = 0; i < hdev->nvqs; ++i) {
+		/* [vhost-user: guest loaded virtio-net driver] step 15 */
         r = vhost_virtqueue_start(hdev,
                                   vdev,
                                   hdev->vqs + i,

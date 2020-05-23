@@ -202,6 +202,7 @@ static void virtio_net_announce(NetClientState *nc)
 }
 
 /* [ vhost irqfd init ] step 8 */
+/* [vhost-user: guest loaded virtio-net driver] step 6 */
 static void virtio_net_vhost_status(VirtIONet *n, uint8_t status)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(n);
@@ -250,6 +251,7 @@ static void virtio_net_vhost_status(VirtIONet *n, uint8_t status)
         n->vhost_started = 1;
 
 		/**/
+		/* [vhost-user: guest loaded virtio-net driver] step 7 */
         r = vhost_net_start(vdev, n->nic->ncs, queues);
         if (r < 0) {
             error_report("unable to start vhost net: %d: "
@@ -324,6 +326,7 @@ static void virtio_net_drop_tx_queue_data(VirtIODevice *vdev, VirtQueue *vq)
 }
 
 /* [ vhost irqfd init ] step 7 */
+/* [vhost-user: guest loaded virtio-net driver] step 4 */
 static void virtio_net_set_status(struct VirtIODevice *vdev, uint8_t status)
 {
     VirtIONet *n = VIRTIO_NET(vdev);
@@ -332,6 +335,8 @@ static void virtio_net_set_status(struct VirtIODevice *vdev, uint8_t status)
     uint8_t queue_status;
 
     virtio_net_vnet_endian_status(n, status);
+
+	/* [vhost-user: guest loaded virtio-net driver] step 5 */
     virtio_net_vhost_status(n, status);
 
     for (i = 0; i < n->max_queues; i++) {

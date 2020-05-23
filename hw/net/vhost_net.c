@@ -222,6 +222,7 @@ static void vhost_net_set_vq_index(struct vhost_net *net, int vq_index)
     net->dev.vq_index = vq_index;
 }
 
+/* [vhost-user: guest loaded virtio-net driver] step 10 */
 static int vhost_net_start_one(struct vhost_net *net,
                                VirtIODevice *dev)
 {
@@ -237,6 +238,7 @@ static int vhost_net_start_one(struct vhost_net *net,
     }
 
 	/**/
+	/* [vhost-user: guest loaded virtio-net driver] step 11 */
     r = vhost_dev_start(&net->dev, dev);
     if (r < 0) {
         goto fail_start;
@@ -305,6 +307,7 @@ static void vhost_net_stop_one(struct vhost_net *net,
 }
 
 /* [ vhost irqfd init ] step 8 */
+/* [vhost-user: guest loaded virtio-net driver] step 8 */
 int vhost_net_start(VirtIODevice *dev, NetClientState *ncs,
                     int total_queues)
 {
@@ -341,6 +344,7 @@ int vhost_net_start(VirtIODevice *dev, NetClientState *ncs,
     }
 
     for (i = 0; i < total_queues; i++) {
+		/* [vhost-user: guest loaded virtio-net driver] step 9 */
         r = vhost_net_start_one(get_vhost_net(ncs[i].peer), dev);
 
         if (r < 0) {

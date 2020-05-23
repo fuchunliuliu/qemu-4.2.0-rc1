@@ -1866,6 +1866,7 @@ static int virtio_validate_features(VirtIODevice *vdev)
 }
 
 /* [ vhost irqfd init ] step 5 */
+/* [vhost-user: guest loaded virtio-net driver] step 2 */
 int virtio_set_status(VirtIODevice *vdev, uint8_t val)
 {
     VirtioDeviceClass *k = VIRTIO_DEVICE_GET_CLASS(vdev);
@@ -1889,6 +1890,8 @@ int virtio_set_status(VirtIODevice *vdev, uint8_t val)
 
     if (k->set_status) {
 		/* [ vhost irqfd init ] step 6 */
+		/* [vhost-user: guest loaded virtio-net driver] step 3
+		 * hw/virtio/virtio-net.c: virtio_net_set_status() */
         k->set_status(vdev, val);
     }
     vdev->status = val;
