@@ -139,6 +139,7 @@ static int vhost_net_get_fd(NetClientState *backend)
 }
 
 /* 初始化vhost */
+/* [vhost-user] step 13 */
 struct vhost_net *vhost_net_init(VhostNetOptions *options)
 {
     int r;
@@ -174,6 +175,7 @@ struct vhost_net *vhost_net_init(VhostNetOptions *options)
         net->dev.vq_index = net->nc->queue_index * net->dev.nvqs;
     }
 
+	/* [vhost-user] step 14 */
     r = vhost_dev_init(&net->dev, options->opaque,
                        options->backend_type, options->busyloop_timeout);
     if (r < 0) {

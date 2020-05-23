@@ -1164,6 +1164,7 @@ static int vhost_virtqueue_set_busyloop_timeout(struct vhost_dev *dev,
     return 0;
 }
 
+/* [vhost-user] step 19.1 */
 static int vhost_virtqueue_init(struct vhost_dev *dev,
                                 struct vhost_virtqueue *vq, int n)
 {
@@ -1171,12 +1172,16 @@ static int vhost_virtqueue_init(struct vhost_dev *dev,
     struct vhost_vring_file file = {
         .index = vhost_vq_index,
     };
+
+	/* [vhost-user] step 19.2: 创建call fd */
     int r = event_notifier_init(&vq->masked_notifier, 0);
     if (r < 0) {
         return r;
     }
 
     file.fd = event_notifier_get_fd(&vq->masked_notifier);
+
+	/* [vhost-user] step 19.3: hw/virtio/vhost-user.c: vhost_user_set_vring_call(); 创建eventfd */
     r = dev->vhost_ops->vhost_set_vring_call(dev, &file);
     if (r) {
         VHOST_OPS_DEBUG("vhost_set_vring_call failed");
@@ -1197,6 +1202,7 @@ static void vhost_virtqueue_cleanup(struct vhost_virtqueue *vq)
     event_notifier_cleanup(&vq->masked_notifier);
 }
 
+/* [vhost-user] step 15 */
 int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
                    VhostBackendType backend_type, uint32_t busyloop_timeout)
 {
@@ -1210,17 +1216,20 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     r = vhost_set_backend_type(hdev, backend_type);
     assert(r >= 0);
 
+	/* [vhost-user] step 16: hw/virtio/vhost-user.c: vhost_user_backend_init() */
     r = hdev->vhost_ops->vhost_backend_init(hdev, opaque);
     if (r < 0) {
         goto fail;
     }
 
+	/* [vhost-user] step 17: hw/virtio/vhost-user.c: vhost_user_set_owner() */
     r = hdev->vhost_ops->vhost_set_owner(hdev);
     if (r < 0) {
         VHOST_OPS_DEBUG("vhost_set_owner failed");
         goto fail;
     }
 
+	/* [vhost-user] step 18: hw/virtio/vhost-user.c: vhost_user_get_features() */
     r = hdev->vhost_ops->vhost_get_features(hdev, &features);
     if (r < 0) {
         VHOST_OPS_DEBUG("vhost_get_features failed");
@@ -1228,6 +1237,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     }
 
     for (i = 0; i < hdev->nvqs; ++i, ++n_initialized_vqs) {
+		/* [vhost-user] step 19 */
         r = vhost_virtqueue_init(hdev, hdev->vqs + i, hdev->vq_index + i);
         if (r < 0) {
             goto fail;
@@ -1246,6 +1256,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
 
     hdev->features = features;
 
+	/* [vhost-user] step 20: 注册memory_listener */
     hdev->memory_listener = (MemoryListener) {
         .begin = vhost_begin,
         .commit = vhost_commit,

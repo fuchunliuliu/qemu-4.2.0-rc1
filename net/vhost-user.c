@@ -66,6 +66,8 @@ static void vhost_user_stop(int queues, NetClientState *ncs[])
     }
 }
 
+/* 和dpdk vhost-user后端协商 */
+/* [vhost-user] step 11 */
 static int vhost_user_start(int queues, NetClientState *ncs[],
                             VhostUserState *be)
 {
@@ -85,6 +87,8 @@ static int vhost_user_start(int queues, NetClientState *ncs[],
         options.net_backend = ncs[i];
         options.opaque      = be;
         options.busyloop_timeout = 0;
+
+		/* [vhost-user] step 12: 创建并初始化一个vhost-net */
         net = vhost_net_init(&options);
         if (!net) {
             error_report("failed to init vhost_net for queue %d", i);
@@ -249,9 +253,12 @@ static void chr_closed_bh(void *opaque)
     }
 }
 
+/* dpdk vhost-user与qemu建立socket链接后，qemu调用该函数 */
+/* [vhost-user] step 9 */
 static void net_vhost_user_event(void *opaque, int event)
 {
     const char *name = opaque;
+	/* 每个队列一个该结构 */
     NetClientState *ncs[MAX_QUEUE_NUM];
     NetVhostUserState *s;
     Chardev *chr;
@@ -268,6 +275,7 @@ static void net_vhost_user_event(void *opaque, int event)
     trace_vhost_user_event(chr->label, event);
     switch (event) {
     case CHR_EVENT_OPENED:
+		/* [vhost-user] step 10 */
         if (vhost_user_start(queues, ncs, s->vhost_user) < 0) {
             qemu_chr_fe_disconnect(&s->chr);
             return;
@@ -301,6 +309,7 @@ static void net_vhost_user_event(void *opaque, int event)
     }
 }
 
+/* [vhost-user] step 7 */
 static int net_vhost_user_init(NetClientState *peer, const char *device,
                                const char *name, Chardev *chr,
                                int queues)
@@ -340,6 +349,7 @@ static int net_vhost_user_init(NetClientState *peer, const char *device,
             goto err;
         }
         qemu_chr_fe_set_handlers(&s->chr, NULL, NULL,
+								 /* [vhost-user] step 8 */
                                  net_vhost_user_event, NULL, nc0->name, NULL,
                                  true);
     } while (!s->started);
@@ -408,6 +418,7 @@ static int net_vhost_check_net(void *opaque, QemuOpts *opts, Error **errp)
     return 0;
 }
 
+/* [vhost-user] step 5 */
 int net_init_vhost_user(const Netdev *netdev, const char *name,
                         NetClientState *peer, Error **errp)
 {
@@ -437,5 +448,6 @@ int net_init_vhost_user(const Netdev *netdev, const char *name,
         return -1;
     }
 
+	/* [vhost-user] step 6 */
     return net_vhost_user_init(peer, "vhost_user", name, chr, queues);
 }

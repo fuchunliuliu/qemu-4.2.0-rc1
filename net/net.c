@@ -962,6 +962,7 @@ static int (* const net_client_init_fun[NET_CLIENT_DRIVER__MAX])(
 #endif
         [NET_CLIENT_DRIVER_HUBPORT]   = net_init_hubport,
 #ifdef CONFIG_VHOST_NET_USER
+		/* [vhost-user] step 4: vhost-user初始化 */
         [NET_CLIENT_DRIVER_VHOST_USER] = net_init_vhost_user,
 #endif
 #ifdef CONFIG_L2TPV3
@@ -1058,6 +1059,7 @@ static int net_client_init1(const void *object, bool is_netdev, Error **errp)
         }
     }
 
+	/* [vhost-user] step 3 */
     if (net_client_init_fun[netdev->type](netdev, name, peer, errp) < 0) {
         /* FIXME drop when all init functions store an Error */
         if (errp && !*errp) {
@@ -1104,6 +1106,7 @@ static void show_netdevs(void)
 
 /* [ /dev/vhost-net ]  step 6;
  * 由该函数的调用者可知，该函数用于解析qemu命令行参数*/
+/* [vhost-user] step 1 */
 static int net_client_init(QemuOpts *opts, bool is_netdev, Error **errp)
 {
     gchar **substrings = NULL;
@@ -1160,6 +1163,7 @@ static int net_client_init(QemuOpts *opts, bool is_netdev, Error **errp)
     }
 
     if (!err) {
+		/* [vhost-user] step 2 */
         ret = net_client_init1(object, is_netdev, &err);
     }
 

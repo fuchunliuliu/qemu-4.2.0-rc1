@@ -1392,6 +1392,7 @@ static int vhost_user_backend_init(struct vhost_dev *dev, void *opaque)
     u->dev = dev;
     dev->opaque = u;
 
+	/* 获取后端特性 */
     err = vhost_user_get_features(dev, &features);
     if (err < 0) {
         return err;
@@ -1400,6 +1401,7 @@ static int vhost_user_backend_init(struct vhost_dev *dev, void *opaque)
     if (virtio_has_feature(features, VHOST_USER_F_PROTOCOL_FEATURES)) {
         dev->backend_features |= 1ULL << VHOST_USER_F_PROTOCOL_FEATURES;
 
+		/* 获取后端协议特性 */
         err = vhost_user_get_u64(dev, VHOST_USER_GET_PROTOCOL_FEATURES,
                                  &protocol_features);
         if (err < 0) {
@@ -1419,6 +1421,7 @@ static int vhost_user_backend_init(struct vhost_dev *dev, void *opaque)
             return -1;
         }
 
+		/* 设置后端协议特性 */
         err = vhost_user_set_protocol_features(dev, dev->protocol_features);
         if (err < 0) {
             return err;
@@ -1426,6 +1429,7 @@ static int vhost_user_backend_init(struct vhost_dev *dev, void *opaque)
 
         /* query the max queues we support if backend supports Multiple Queue */
         if (dev->protocol_features & (1ULL << VHOST_USER_PROTOCOL_F_MQ)) {
+			/* 获取后端支持的最大队列数 */
             err = vhost_user_get_u64(dev, VHOST_USER_GET_QUEUE_NUM,
                                      &dev->max_queues);
             if (err < 0) {
