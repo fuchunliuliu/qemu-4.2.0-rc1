@@ -651,6 +651,7 @@ static int peer_detach(VirtIONet *n, int index)
     return tap_disable(nc->peer);
 }
 
+/* [vhost-user: guest loading virtio-net driver] step 9 */
 static void virtio_net_set_queues(VirtIONet *n)
 {
     int i;
@@ -660,6 +661,8 @@ static void virtio_net_set_queues(VirtIONet *n)
         return;
     }
 
+	/* max_queues:  qemu命令行指定的队列数；
+	 * curr_queues: 前端enable的队列数 */
     for (i = 0; i < n->max_queues; i++) {
         if (i < n->curr_queues) {
             r = peer_attach(n, i);
@@ -848,6 +851,7 @@ static DeviceState *virtio_connect_failover_devices(VirtIONet *n,
     return prim_dev;
 }
 
+/* [vhost-user: guest loading virtio-net driver] step 5 */
 static void virtio_net_set_features(VirtIODevice *vdev, uint64_t features)
 {
     VirtIONet *n = VIRTIO_NET(vdev);
@@ -859,6 +863,7 @@ static void virtio_net_set_features(VirtIODevice *vdev, uint64_t features)
         features &= ~(1ULL << VIRTIO_NET_F_MTU);
     }
 
+	/* [vhost-user: guest loading virtio-net driver] step 6 */
     virtio_net_set_multiqueue(n,
                               virtio_has_feature(features, VIRTIO_NET_F_MQ));
 
@@ -2440,6 +2445,7 @@ static void virtio_net_change_num_queues(VirtIONet *n, int new_max_queues)
     n->ctrl_vq = virtio_add_queue(vdev, 64, virtio_net_handle_ctrl);
 }
 
+/* [vhost-user: guest loading virtio-net driver] step 7 */
 static void virtio_net_set_multiqueue(VirtIONet *n, int multiqueue)
 {
     int max = multiqueue ? n->max_queues : 1;
@@ -2447,6 +2453,7 @@ static void virtio_net_set_multiqueue(VirtIONet *n, int multiqueue)
     n->multiqueue = multiqueue;
     virtio_net_change_num_queues(n, max);
 
+	/* [vhost-user: guest loading virtio-net driver] step 8 */
     virtio_net_set_queues(n);
 }
 

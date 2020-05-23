@@ -2866,12 +2866,15 @@ static int virtio_set_features_nocheck(VirtIODevice *vdev, uint64_t val)
 
     val &= vdev->host_features;
     if (k->set_features) {
+		/* [vhost-user: guest loading virtio-net driver] step 4
+		 * hw/virtio/virtio-net.c: virtio_net_set_features() */
         k->set_features(vdev, val);
     }
     vdev->guest_features = val;
     return bad ? -1 : 0;
 }
 
+/* [vhost-user: guest loading virtio-net driver] step 2 */
 int virtio_set_features(VirtIODevice *vdev, uint64_t val)
 {
     int ret;
@@ -2882,6 +2885,8 @@ int virtio_set_features(VirtIODevice *vdev, uint64_t val)
     if (vdev->status & VIRTIO_CONFIG_S_FEATURES_OK) {
         return -EINVAL;
     }
+
+	/* [vhost-user: guest loading virtio-net driver] step 3 */
     ret = virtio_set_features_nocheck(vdev, val);
     if (!ret) {
         if (virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {

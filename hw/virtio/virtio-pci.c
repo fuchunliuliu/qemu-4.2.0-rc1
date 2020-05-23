@@ -308,6 +308,8 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
         if (val & (1 << VIRTIO_F_BAD_FEATURE)) {
             val = virtio_bus_get_vdev_bad_features(&proxy->bus);
         }
+		/* [vhost-user: guest loading virtio-net driver] step 1: 
+		 * guest启动后，加载virtio-net驱动，会写寄存器 VIRTIO_PCI_GUEST_FEATURES */
         virtio_set_features(vdev, val);
         break;
     case VIRTIO_PCI_QUEUE_PFN:
